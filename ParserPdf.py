@@ -49,6 +49,7 @@ def Abstract(Contenu):
         b = a[0].split("\n")
         abstract = ''.join(b)
         return abstract
+
         
 
 def findTitle(source, element):
@@ -191,33 +192,58 @@ def resultat(xml, tmp, result, element):
     destination.close()
 
 
-def xml(directory):  
+def xml(directory,liste):
     for element in os.listdir(directory):
         if element.endswith('.pdf'):
-            if not os.path.exists(directory+"/xmlResultat"):
-                os.mkdir(directory+"/xmlResultat")
-            element = element.replace(".pdf", "")
-            source = open(directory+"/resultToXml/"+element+".txt", "r")              
-            f = open(directory+"/xmlResultat/"+element+".xml", "w")
-            i=1
-            for line in source:
-                if i == 1:
-                    t = line
-                    t = t[8:-1]
-                if i == 3:
-                    p = line
-                    p = p[17:-1]
-                if i == 5:
-                    a = line
-                    a = a[9:-1]
-                i+=1
-            f.write("<article>\n")          
-            f.write("\t<preamble>"+p+"</preamble>\n")
-            f.write("\t<titre>"+t+"</titre>\n")
-            f.write("\t<abstract>"+a+"</abstract>\n")
-            f.write("</article>")  
-            source.close()
-            f.close()
+            if element in liste:
+                if not os.path.exists(directory+"/xmlResultat"):
+                    os.mkdir(directory+"/xmlResultat")
+                element = element.replace(".pdf", "")
+                source = open(directory+"/resultToXml/"+element+".txt", "r")              
+                f = open(directory+"/xmlResultat/"+element+".xml", "w")
+                i=1
+                for line in source:
+                    if i == 1:
+                        t = line
+                        t = t[8:-1]
+                    if i == 3:
+                        p = line
+                        p = p[17:-1]
+                    if i == 5:
+                        a = line
+                        a = a[9:-1]
+                    if i == 7:
+                        intr = line
+                        intr = i[15:-1]
+                    if i == 9:
+                        c = line
+                        c = c[8:-1]
+                    if i == 11:
+                        ccl = line
+                        ccl = ccl[13:-1]
+                    if i == 13:
+                        d = line
+                        d = d[13:-1]
+                    if i == 15:
+                        b = line
+                        b = b[16:-1]
+                    if i == 17:
+                        aut = line
+                        aut = aut[9:-1]
+                    i+=1
+                f.write("<article>\n")          
+                f.write("\t<preamble>"+p+"</preamble>\n")
+                f.write("\t<titre>"+t+"</titre>\n")
+                f.write("\t<auteur>"+aut+"</auteur>\n")
+                f.write("\t<abstract>"+a+"</abstract>\n")
+                f.write("\t<introduction>"+intr+"</introduction>\n")
+                f.write("\t<corps>"+c+"</corps>\n")
+                f.write("\t<conclusion>"+ccl+"</conclusion>\n")
+                f.write("\t<discussion>"+d+"</discussion>\n")
+                f.write("\t<biblio>"+b+"</biblio>\n")
+                f.write("</article>")  
+                source.close()
+                f.close()
 
 def transmog(argv, directory):
     origin = "{0}/{1}".format(os.getcwd(), directory)
@@ -237,17 +263,18 @@ def transmog(argv, directory):
             resultat(xml, tmp, result, element)
     os.chdir(origin)
  
-def pdf(directory):
+def pdf(directory,liste):
     tmp = "{}/tmp".format(directory)
     if os.path.exists(tmp):
         shutil.rmtree(tmp)
     os.mkdir(tmp)
     for element in os.listdir(directory):
         if element.endswith('.pdf'):
-            element = transform(element)
-            titre = element[0:-4]
-            a = "pdftotext -raw -nopgbrk -enc ASCII7 {0}/{1}/{2}  {0}/{1}/tmp/{3}.txt".format(os.getcwd(),directory, element, titre)
-            os.system(a)
+            if element in liste:
+                element = transform(element)
+                titre = element[0:-4]
+                a = "pdftotext -raw -nopgbrk -enc ASCII7 {0}/{1}/{2}  {0}/{1}/tmp/{3}.txt".format(os.getcwd(),directory, element, titre)
+                os.system(a)
 
 def main(argv):               
     if len(argv) != 3:
@@ -261,7 +288,14 @@ def main(argv):
         if not (argv[2].endswith("/")) : directory = argv[2] +"/"
         else : directory = argv[2]
         if os.path.exists(directory) & os.path.isdir(directory):
-            pdf(directory)
+            liste=[]
+            for element in os.listdir(argv[2]):
+                if element.endswith('.pdf'):
+                    print("Voulez vous parser "+element+" ? (o/n)");
+                    choix = input("Entrez votre choix:");
+                    if choix == "o":
+                        liste.append(element);
+            pdf(directory,liste)
         else:
                 print( "L'argument n'éxiste pas ou n'est pas un répertoire !")
                 sys.exit(2)
@@ -270,7 +304,7 @@ def main(argv):
         elif argv[1] == "-x":
             transmog(argv, directory)
             os.chdir(current)
-            xml(argv[2])
+            xml(directory,liste)
             os.chdir(current+"/"+directory)
             os.system("rm -r resultToXml")
         else :
