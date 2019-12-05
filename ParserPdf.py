@@ -99,7 +99,64 @@ def findTitle(source, element):
                 titleToPrint = titleToPrint[:-1]
                 titleToPrint = titleToPrint + " " +ligne
     return titleToPrint[:-1]
-   
+
+def findParts(source):
+    introduction = corps = conclusion = discussion = bibliographie = False
+    contenuIntro = "Introduction : "
+    contenuCorps = "Corps : "
+    contenuConclusion = "Conclusion : "
+    contenuDiscussion = "Discussion : "
+    contenuBibliographie = "Bibliographie : "
+    for ligne in source:
+        save = ""
+        for char in ligne :
+            if char != "\n":
+                save += char
+        if save != "":
+            test = save.split(" ")
+            test.extend(["none", "none", "none"])
+            if not introduction :
+                if compareStr(test[1], "introduction") :
+                    introduction = True
+            elif not(corps) :
+                if (test[0] == '2' or test[0] == '2.' or test[0] == '2)' or test[0] == 'II' or test[0] == 'II.' or test[0] == 'II)'):
+                    if test[1] != "none":
+                        if not (test[1].startswith("http") or test[1] == "C.E."):
+                            corps = True
+                            contenuCorps += save + "  "
+                else :
+                    contenuIntro += save + "  "
+
+            elif not (discussion or conclusion) :
+                if (compareStr(test[1], "conclusion") or compareStr(test[1], "conclusions") ) :
+                    conclusion = True
+                elif (compareStr(test[1], "discussion") or compareStr(test[1], "discussions") ) :
+                    discussion = True
+                else :
+                    contenuCorps += save + "  "
+            elif not bibliographie :
+                if (compareStr(test[1], "references") or compareStr(test[0], "references")) :
+                    bibliographie = True
+                elif (conclusion) :
+                    if not (discussion) :
+                        if (compareStr(test[1], "discussion") or compareStr(test[1], "discussions")) :
+                            discussion = True
+                        else : 
+                            contenuConclusion += save + "  "
+                if (discussion and not(bibliographie)) :
+                    if not (conclusion) :
+                        if (compareStr(test[1], "conclusion") or compareStr(test[1], "conclusions")) :
+                            conclusion = True
+                        else : 
+                            contenuDiscussion += save + "  "
+                    else:
+                        contenuConclusion += save + "  "
+            else :
+                contenuBibliographie += save
+    return [contenuIntro, contenuCorps, contenuConclusion, contenuDiscussion, contenuBibliographie]
+
+
+
 
 def resultat(xml, tmp, result, element):
     os.chdir(tmp)
@@ -122,6 +179,15 @@ def resultat(xml, tmp, result, element):
     for i in range(0,len(r)) :                                 
         destination.write(r[i])
     source.close()
+
+
+    if xml :
+        source = open(element,"r")
+        liste = findParts(source)
+        print("\n", file = destination)
+        for i in liste :
+            print(i, file = destination)
+            print("", file = destination)
     destination.close()
 
 
@@ -213,6 +279,5 @@ def main(argv):
             print(" -x  version .xml")
         os.system("rm -r tmp")
 
-                    
-
+                
 main(sys.argv)
