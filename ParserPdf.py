@@ -127,6 +127,8 @@ def resultat(xml, tmp, result, element):
 
 
 def xml(directory,liste):
+    aut = "mdr"
+    intr =""
     for element in os.listdir(directory):
         if element.endswith('.pdf'):
             if element in liste:
@@ -148,7 +150,7 @@ def xml(directory,liste):
                         a = a[9:-1]
                     if i == 7:
                         intr = line
-                        intr = i[15:-1]
+                        intr = intr[15:-1]
                     if i == 9:
                         c = line
                         c = c[8:-1]
