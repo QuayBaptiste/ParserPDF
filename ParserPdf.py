@@ -100,7 +100,64 @@ def findTitle(source, element):
                 titleToPrint = titleToPrint[:-1]
                 titleToPrint = titleToPrint + " " +ligne
     return titleToPrint[:-1]
-   
+
+def findParts(source):
+    introduction = corps = conclusion = discussion = bibliographie = False
+    contenuIntro = "Introduction : "
+    contenuCorps = "Corps : "
+    contenuConclusion = "Conclusion : "
+    contenuDiscussion = "Discussion : "
+    contenuBibliographie = "Bibliographie : "
+    for ligne in source:
+        save = ""
+        for char in ligne :
+            if char != "\n":
+                save += char
+        if save != "":
+            test = save.split(" ")
+            test.extend(["none", "none", "none"])
+            if not introduction :
+                if compareStr(test[1], "introduction") :
+                    introduction = True
+            elif not(corps) :
+                if (test[0] == '2' or test[0] == '2.' or test[0] == '2)' or test[0] == 'II' or test[0] == 'II.' or test[0] == 'II)'):
+                    if test[1] != "none":
+                        if not (test[1].startswith("http") or test[1] == "C.E."):
+                            corps = True
+                            contenuCorps += save + "  "
+                else :
+                    contenuIntro += save + "  "
+
+            elif not (discussion or conclusion) :
+                if (compareStr(test[1], "conclusion") or compareStr(test[1], "conclusions") ) :
+                    conclusion = True
+                elif (compareStr(test[1], "discussion") or compareStr(test[1], "discussions") ) :
+                    discussion = True
+                else :
+                    contenuCorps += save + "  "
+            elif not bibliographie :
+                if (compareStr(test[1], "references") or compareStr(test[0], "references")) :
+                    bibliographie = True
+                elif (conclusion) :
+                    if not (discussion) :
+                        if (compareStr(test[1], "discussion") or compareStr(test[1], "discussions")) :
+                            discussion = True
+                        else : 
+                            contenuConclusion += save + "  "
+                if (discussion and not(bibliographie)) :
+                    if not (conclusion) :
+                        if (compareStr(test[1], "conclusion") or compareStr(test[1], "conclusions")) :
+                            conclusion = True
+                        else : 
+                            contenuDiscussion += save + "  "
+                    else:
+                        contenuConclusion += save + "  "
+            else :
+                contenuBibliographie += save
+    return [contenuIntro, contenuCorps, contenuConclusion, contenuDiscussion, contenuBibliographie]
+
+
+
 
 def resultat(xml, tmp, result, element):
     os.chdir(tmp)
@@ -123,12 +180,20 @@ def resultat(xml, tmp, result, element):
     for i in range(0,len(r)) :                                 
         destination.write(r[i])
     source.close()
+
+
+    if xml :
+        source = open(element,"r")
+        liste = findParts(source)
+        print("\n", file = destination)
+        for i in liste :
+            print(i, file = destination)
+            print("", file = destination)
     destination.close()
 
 
 def xml(directory,liste):
-    aut = "mdr"
-    intr =""
+    aut = "EN ATTENTE"
     for element in os.listdir(directory):
         if element.endswith('.pdf'):
             if element in liste:
@@ -167,19 +232,52 @@ def xml(directory,liste):
                         aut = line
                         aut = aut[9:-1]
                     i+=1
+
                 f.write("<article>\n")          
                 f.write("\t<preamble>"+p+"</preamble>\n")
+                t = t.replace('&','&amp;')
+                t = t.replace('<','&lt;') 
+                t = t.replace('>','&gt;')
+                t = t.replace("", " ")
                 f.write("\t<titre>"+t+"</titre>\n")
+                aut = aut.replace('&','&amp;')
+                aut = aut.replace('<','&lt;') 
+                aut = aut.replace('>','&gt;')
+                aut = aut.replace("", " ")
                 f.write("\t<auteur>"+aut+"</auteur>\n")
+                a = a.replace('&','&amp;')
+                a = a.replace('<','&lt;') 
+                a = a.replace('>','&gt;')
+                a = a.replace("", " ")
                 f.write("\t<abstract>"+a+"</abstract>\n")
+                intr = intr.replace('&','&amp;')
+                intr = intr.replace('<','&lt;') 
+                intr = intr.replace('>','&gt;')
+                intr = intr.replace("", " ")
                 f.write("\t<introduction>"+intr+"</introduction>\n")
+                c = c.replace('&','&amp;')
+                c = c.replace('<','&lt;') 
+                c = c.replace('>','&gt;')
+                c = c.replace("", " ")
                 f.write("\t<corps>"+c+"</corps>\n")
+                ccl = ccl.replace('&','&amp;')
+                ccl = ccl.replace('<','&lt;') 
+                ccl = ccl.replace('>','&gt;')
+                ccl = ccl.replace("", " ")
                 f.write("\t<conclusion>"+ccl+"</conclusion>\n")
+                d = d.replace('&','&amp;')
+                d = d.replace('<','&lt;') 
+                d = d.replace('>','&gt;')
+                d = d.replace("", " ")
                 f.write("\t<discussion>"+d+"</discussion>\n")
+                b = b.replace('&','&amp;')
+                b = b.replace('<','&lt;') 
+                b = b.replace('>','&gt;')
+                b = b.replace("", " ")
                 f.write("\t<biblio>"+b+"</biblio>\n")
-                f.write("</article>")  
-                source.close()
+                f.write("</article>")
                 f.close()
+                source.close()
 
 def transmog(argv, directory):
     origin = "{0}/{1}".format(os.getcwd(), directory)
@@ -249,6 +347,5 @@ def main(argv):
             print(" -x  version .xml")
         os.system("rm -r tmp")
 
-                    
-
+                
 main(sys.argv)
