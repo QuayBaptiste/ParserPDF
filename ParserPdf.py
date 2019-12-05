@@ -245,7 +245,7 @@ def main(argv):
             print("-option non reconnue :")
             print(" -t  version .txt")
             print(" -x  version .xml")
-        #os.system("rm -r tmp")
+        os.system("rm -r tmp")
 
                     
 
