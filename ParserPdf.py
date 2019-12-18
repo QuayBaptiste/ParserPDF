@@ -15,6 +15,17 @@ def compareStr(str1, str2):
         return True
     return False
 
+
+def isIn(str1, str2):
+    if len(str1) == len(str2):
+        return compareStr(str1,str2)
+    elif len(str1) < len(str2):
+        if not(compareStr(str1,str2[-len(str1):])):
+            return compareStr(str1,str2[:len(str1)])
+        else : 
+            return compareStr(str1,str2[-len(str1):])
+        
+
 # Transform an element to a terminal friendly element
 def transform(element):
     cpt = 0
@@ -156,7 +167,24 @@ def findParts(source):
                 contenuBibliographie += save
     return [contenuIntro, contenuCorps, contenuConclusion, contenuDiscussion, contenuBibliographie]
 
-
+def findauteur(source, element):
+    debTitre = fin = False
+    result=""
+    titre = findTitle(source, element)
+    source.close()
+    source = open(element,"r")
+    for ligne in source:
+        ligne = ligne[:-1]
+        if isIn(ligne, titre) and not debTitre :
+            debTitre = True
+        if not isIn(ligne, titre) and debTitre :
+            if isIn("Abstract", ligne):
+                print(ligne)
+                fin = True
+            if fin : 
+                return result
+            result += ligne + "  "
+        
 
 
 def resultat(xml, tmp, result, element):
@@ -171,7 +199,7 @@ def resultat(xml, tmp, result, element):
     print("\nnom du fichier : " + nom, file =destination)
 
     #if xml :
-        #print(findAutheur(source, element), file = destination)
+        #print(findauteur(source, element), file = destination)
 
     source = open(element,"r")
     txt = source.read()
@@ -189,6 +217,10 @@ def resultat(xml, tmp, result, element):
         for i in liste :
             print(i, file = destination)
             print("", file = destination)
+        source = open(element,"r")
+        print("auteur : " + findauteur(source, element), file = destination)
+        source.close()
+
     destination.close()
 
 
