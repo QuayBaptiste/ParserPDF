@@ -218,14 +218,16 @@ def resultat(xml, tmp, result, element):
             print(i, file = destination)
             print("", file = destination)
         source = open(element,"r")
-        print("auteur : " + findauteur(source, element), file = destination)
+        aut = findauteur(source, element)
+        if (aut != None):
+            print("auteur : " + aut, file = destination)
         source.close()
 
     destination.close()
 
 
 def xml(directory,liste):
-    aut = "EN ATTENTE"
+    aut = "Auteur introuvable"
     for element in os.listdir(directory):
         if element.endswith('.pdf'):
             if element in liste:
